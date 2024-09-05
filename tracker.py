@@ -194,7 +194,45 @@ def delete_task(task_id: int):
     # Save the updated task list back to the file
     save_tasks(tasks)
     
-    LOG.info(f"Task ID {task_id} deleted.")
+    LOG.info(f"[-] Task ID {task_id} deleted.")
+
+
+def update_status(task_id: int, updated_status: str):
+    """
+    Updates the status of a task with the given task_id.
+
+    Args:
+        task_id (int): The ID of the task to update.
+        updated_status (str): The new status for the task ('pending', 'in-progress', 'completed').
+    
+    Returns:
+        None
+    """
+    # Define valid statuses
+    valid_statuses = [status.value for status in TaskStatus]
+    
+    # Load existing tasks from the file
+    tasks = load_tasks()
+
+    # Find the task by ID
+    task_to_update = next((task for task in tasks if task.id == task_id), None)
+
+    if task_to_update is None:
+        LOG.error(f"Task with ID {task_id} not found.")
+        return
+
+    # Validate the updated status
+    if updated_status.lower() not in valid_statuses:
+        LOG.error(f"'{updated_status}' is not a valid status. Valid statuses are: {valid_statuses}.")
+        return
+
+    # Update the task status
+    task_to_update.status = TaskStatus(updated_status.lower())
+
+    # Save the updated task list back to the file
+    save_tasks(tasks)
+
+    LOG.info(f"[+u] Task ID {task_id} status updated successfully to '{updated_status}'.")
 
 
 def handle_task(args: argparse.Namespace):
@@ -210,6 +248,8 @@ def handle_task(args: argparse.Namespace):
         update_task(int(args.id), args.name)
     elif args.action == "delete":
         delete_task(int(args.id))
+    elif args.action == "mark":
+        update_status(int(args.id), args.status)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task tracker CLI")
@@ -221,6 +261,10 @@ if __name__ == "__main__":
     update_task_parser = subparsers.add_parser("update", help="Update task related arguments", add_help=False)
     update_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
     update_task_parser.add_argument("-n", "--name", type=str, help="Task's new name")
+    
+    mark_task_parser = subparsers.add_parser("mark", help="Update task status related arguments", add_help=False)
+    mark_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
+    mark_task_parser.add_argument("-s", "--status", choices=["todo", "in-progress", "done"], help="Task's new status")
 
     delete_task_parser = subparsers.add_parser("delete", help="Delete task related arguments", add_help=False)
     delete_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
