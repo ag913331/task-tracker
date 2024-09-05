@@ -1,12 +1,44 @@
 import argparse
 import json
+import logging
+import os
 
 from enum import Enum
 from typing import Tuple, List
 from dataclasses import dataclass
+from functools import lru_cache
+from logging.handlers import RotatingFileHandler
 
 MAX_TASK_NAME_LENGTH = 100
 TASKS_FILE = "tasks.json"
+
+@lru_cache(maxsize=None)
+def get_logger(log_name):
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(
+        logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
+    )
+
+    os.makedirs(f"logs", exist_ok=True)
+    fh = RotatingFileHandler(
+        f"logs/{log_name}.log", 
+        maxBytes=1024 * 1024 * 10, 
+        backupCount=10
+    )
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(
+        logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
+    )
+
+    logger.addHandler(ch)
+    logger.addHandler(fh)
+    return logger
+
+LOG = get_logger("task-tracker")
 
 class Action(Enum):
     """Represents the action type - add | update | list | delete."""
@@ -98,12 +130,12 @@ def add_task(task_name: str):
     new_task = Task(id=new_id, name=task_name)
     tasks.append(new_task)
     save_tasks(tasks)
-    print(f"Task '{task_name}' added successfully.")
+    LOG.info(f"[+] New task '{task_name}' added.")
 
 def handle_task(task_name: str, action: Action):
     valid, error_message = validate_task_name(task_name)
     if not valid:
-        print(f"Error: {error_message}")
+        LOG.error(f"[ERR] Task input validation: {error_message}")
         return
     
     if action == Action.ADD:
