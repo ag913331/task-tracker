@@ -40,10 +40,10 @@ def get_logger(log_name):
 
 LOG = get_logger("task-tracker")
 
-class Action(Enum):
-    """Represents the action type - add | update | list | delete."""
-    ADD = "add"
-    UPDATE = "update"
+# class Action(Enum):
+#     """Represents the action type - add | update | list | delete."""
+#     ADD = "add"
+#     UPDATE = "update"
 
 
 class TaskStatus(Enum):
@@ -132,26 +132,67 @@ def add_task(task_name: str):
     save_tasks(tasks)
     LOG.info(f"[+] New task '{task_name}' added.")
 
-def handle_task(task_name: str, action: Action):
-    valid, error_message = validate_task_name(task_name)
+def update_task(task_id: int, updated_name: str):
+    """
+    Updates the name of a task with the given task_id.
+
+    Args:
+        task_id (int): The ID of the task to update.
+        updated_name (str): The new name for the task.
+    
+    Returns:
+        None
+    """
+    # Load existing tasks from the file
+    tasks = load_tasks()
+
+    # Find the task by ID
+    task_to_update = next((task for task in tasks if task.id == task_id), None)
+
+    if task_to_update is None:
+        LOG.error(f"Task with ID {task_id} not found.")
+        return
+
+    # Validate the updated task name
+    is_valid, error_message = validate_task_name(updated_name)
+    if not is_valid:
+        LOG.error(f"Task input validation: {error_message}")
+        return
+
+    # Update the task name
+    task_to_update.name = updated_name
+
+    # Save the updated tasks back to the file
+    save_tasks(tasks)
+    
+    LOG.info(f"[+u] Task ID {task_id} updated successfully to '{updated_name}'.")
+
+
+def handle_task(args: argparse.Namespace):
+    valid, error_message = validate_task_name(args.name)
     if not valid:
-        LOG.error(f"[ERR] Task input validation: {error_message}")
+        LOG.error(f"Task input validation: {error_message}")
         return
     
-    if action == Action.ADD:
-        add_task(task_name)
-    elif action == Action.UPDATE:
-        # Here you would implement update functionality
-        print(f"Task '{task_name}' updated successfully.")
+    if args.action == "add":
+        add_task(args.name)
+    elif args.action == "update":
+        update_task(int(args.id), args.name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task tracker CLI")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-a", "--add", type=str, help="Name of the task to add")
-    group.add_argument("-u", "--update", type=str, help="Name of the task to update")
-    args = parser.parse_args()
+    subparsers = parser.add_subparsers(help="list of actions", dest="action")
 
-    if args.add:
-        handle_task(args.add, Action.ADD)
-    elif args.update:
-        handle_task(args.update, Action.UPDATE)
+    add_task_parser = subparsers.add_parser("add", help="Add task related arguments", add_help=False)
+    add_task_parser.add_argument("-n", "--name", type=str, help="Name of the task to add")
+
+    update_task_parser = subparsers.add_parser("update", help="Update task related arguments", add_help=False)
+    update_task_parser.add_argument("-i", "--id", type=str, help="Task ID")
+    update_task_parser.add_argument("-n", "--name", type=str, help="Task's new name")
+    args = parser.parse_args()
+    print(args)
+
+    if args.action == "add":
+        handle_task(args)
+    elif args.action == "update":
+        handle_task(args)
