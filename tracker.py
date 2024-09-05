@@ -168,16 +168,48 @@ def update_task(task_id: int, updated_name: str):
     LOG.info(f"[+u] Task ID {task_id} updated successfully to '{updated_name}'.")
 
 
-def handle_task(args: argparse.Namespace):
-    valid, error_message = validate_task_name(args.name)
-    if not valid:
-        LOG.error(f"Task input validation: {error_message}")
+def delete_task(task_id: int):
+    """
+    Deletes a task with the given task_id from the task tracker.
+
+    Args:
+        task_id (int): The ID of the task to delete.
+    
+    Returns:
+        None
+    """
+    # Load existing tasks from the file
+    tasks = load_tasks()
+
+    # Find the task by ID
+    task_to_delete = next((task for task in tasks if task.id == task_id), None)
+
+    if task_to_delete is None:
+        LOG.error(f"Task with ID {task_id} not found.")
         return
+
+    # Remove the task from the list
+    tasks = [task for task in tasks if task.id != task_id]
+
+    # Save the updated task list back to the file
+    save_tasks(tasks)
+    
+    LOG.info(f"Task ID {task_id} deleted.")
+
+
+def handle_task(args: argparse.Namespace):
+    if args.action in ["add", "update"]:
+        valid, error_message = validate_task_name(args.name)
+        if not valid:
+            LOG.error(f"Task input validation: {error_message}")
+            return
     
     if args.action == "add":
         add_task(args.name)
     elif args.action == "update":
         update_task(int(args.id), args.name)
+    elif args.action == "delete":
+        delete_task(int(args.id))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task tracker CLI")
@@ -187,12 +219,13 @@ if __name__ == "__main__":
     add_task_parser.add_argument("-n", "--name", type=str, help="Name of the task to add")
 
     update_task_parser = subparsers.add_parser("update", help="Update task related arguments", add_help=False)
-    update_task_parser.add_argument("-i", "--id", type=str, help="Task ID")
+    update_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
     update_task_parser.add_argument("-n", "--name", type=str, help="Task's new name")
+
+    delete_task_parser = subparsers.add_parser("delete", help="Delete task related arguments", add_help=False)
+    delete_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
+
     args = parser.parse_args()
     print(args)
 
-    if args.action == "add":
-        handle_task(args)
-    elif args.action == "update":
-        handle_task(args)
+    handle_task(args)
