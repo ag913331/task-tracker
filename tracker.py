@@ -40,12 +40,6 @@ def get_logger(log_name):
 
 LOG = get_logger("task-tracker")
 
-# class Action(Enum):
-#     """Represents the action type - add | update | list | delete."""
-#     ADD = "add"
-#     UPDATE = "update"
-
-
 class TaskStatus(Enum):
     """Represents the status of a task."""
     TODO = "todo"
@@ -253,21 +247,24 @@ def handle_task(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task tracker CLI")
-    subparsers = parser.add_subparsers(help="list of actions", dest="action")
+    subparsers = parser.add_subparsers(help="list of actions", dest="action", required=True)
 
-    add_task_parser = subparsers.add_parser("add", help="Add task related arguments", add_help=False)
-    add_task_parser.add_argument("-n", "--name", type=str, help="Name of the task to add")
+    add_task_parser = subparsers.add_parser("add", help="Add task related arguments")
+    add_task_parser.add_argument("name", type=str, help="Name of the task to add")
 
-    update_task_parser = subparsers.add_parser("update", help="Update task related arguments", add_help=False)
-    update_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
-    update_task_parser.add_argument("-n", "--name", type=str, help="Task's new name")
+    update_task_parser = subparsers.add_parser("update", help="Update task related arguments")
+    update_task_parser.add_argument("id", type=int, help="Task ID")
+    update_task_parser.add_argument("name", type=str, help="Task's new name")
     
-    mark_task_parser = subparsers.add_parser("mark", help="Update task status related arguments", add_help=False)
-    mark_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
-    mark_task_parser.add_argument("-s", "--status", choices=["todo", "in-progress", "done"], help="Task's new status")
+    mark_task_parser = subparsers.add_parser("mark", help="Update task status related arguments")
+    mark_task_parser.add_argument("id", type=int, help="Task ID")
+    mark_task_parser.add_argument("status", choices=["todo", "in-progress", "done"], help="Task's new status")
 
-    delete_task_parser = subparsers.add_parser("delete", help="Delete task related arguments", add_help=False)
-    delete_task_parser.add_argument("-i", "--id", type=int, help="Task ID")
+    delete_task_parser = subparsers.add_parser("delete", help="Delete task related arguments")
+    delete_task_parser.add_argument("id", type=int, help="Task ID")
+    
+    list_task_parser = subparsers.add_parser("list", help="List tasks related arguments")
+    list_task_parser.add_argument("status", nargs="?", choices=["all", "todo", "in-progress", "done"], default="all", help="Task type")
 
     args = parser.parse_args()
     print(args)
