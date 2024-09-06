@@ -47,7 +47,7 @@ Each task is represented as an object with the following properties:
 - `created_at` (str): The current timestamp when a task is created.
 - `updated_at` (str): The current timestamp when a task is updated.
 
-## Argument descriptions
+### Argument descriptions
 
 The Task Tracker CLI uses the `argparse` module to manage command-line arguments. This allows for organized handling of various actions related to task management. The arguments are grouped into subparsers (`add`, `update`, `mark`, `delete`, `list`), which are specific to each action. This design ensures that users cannot input a wrong combination of arguments for any given action.
 
