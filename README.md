@@ -55,22 +55,22 @@ The Task Tracker CLI uses the `argparse` module to manage command-line arguments
 
 1. `add`: Adds a new task to the task tracker.
 Arguments:
-- `name`: The name of the task to add. This argument is required to provide a description of the task being created.
+    - `name`: The name of the task to add. This argument is required to provide a description of the task being created.
 
 2. `update`: Updates an existing task.
 Arguments:
-- `id`: The unique identifier of the task to update. This is required to specify which task is being modified.
-- `name`: The new name for the task. This argument is required to set a new description for the specified task.
+    - `id`: The unique identifier of the task to update. This is required to specify which task is being modified.
+    - `name`: The new name for the task. This argument is required to set a new description for the specified task.
 
 3. `mark`: Updates the status of an existing task.
-- `id`: The unique identifier of the task to update. This is required to identify which task's status is being changed.
-- `status`: The new status for the task. Valid options are `todo`, `in-progress`, and `done`. This argument is required to set the task's current state.
+    - `id`: The unique identifier of the task to update. This is required to identify which task's status is being changed.
+    - `status`: The new status for the task. Valid options are `todo`, `in-progress`, and `done`. This argument is required to set the task's current state.
 
 4. `delete`: Deletes a task from the task tracker.
-- `id`: The unique identifier of the task to delete. This argument is required to specify which task is being removed from the tracker.
+    - `id`: The unique identifier of the task to delete. This argument is required to specify which task is being removed from the tracker.
 
 5. `list`: Lists tasks based on their status.
-- `status` (optional): The status of the tasks to list. Options are `all`, `todo`, `in-progress`, and `done`. This argument defaults to `all` if not specified, allowing the user to view all tasks or filter by status.
+    - `status` (optional): The status of the tasks to list. Options are `all`, `todo`, `in-progress`, and `done`. This argument defaults to `all` if not specified, allowing the user to view all tasks or filter by status.
 
 The identical names of the arguments do not conflict with each other, since their are being used with their respective parser. For more information about subparsers please see [argparser-subparsers](https://docs.python.org/3/library/argparse.html#sub-commands).
 
