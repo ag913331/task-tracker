@@ -229,6 +229,35 @@ def update_status(task_id: int, updated_status: str):
     LOG.info(f"[+u] Task ID {task_id} status updated successfully to '{updated_status}'.")
 
 
+def list_tasks(task_status: str):
+    """
+    Lists tasks filtered by the given task status.
+
+    Args:
+        task_status (str): The status of the tasks to list. 
+                           Options: 'all', 'todo', 'in-progress', 'done'.
+
+    Returns:
+        None
+    """
+    tasks = load_tasks()
+
+    if task_status not in ["all", "todo", "in-progress", "done"]:
+        LOG.error(f"Error: Invalid status '{task_status}'. Valid options are: all, todo, in-progress, done.")
+        return
+
+    if task_status == "all":
+        filtered_tasks = tasks
+    else:
+        filtered_tasks = [task for task in tasks if task.status.value == task_status]
+
+    if not filtered_tasks:
+        LOG.info(f"No tasks found with status '{task_status}'.")
+    else:
+        for task in filtered_tasks:
+            print(f"ID: {task.id}, Name: {task.name}, Status: {task.status.value}")
+
+
 def handle_task(args: argparse.Namespace):
     if args.action in ["add", "update"]:
         valid, error_message = validate_task_name(args.name)
@@ -244,6 +273,11 @@ def handle_task(args: argparse.Namespace):
         delete_task(int(args.id))
     elif args.action == "mark":
         update_status(int(args.id), args.status)
+    elif args.action == "list":
+        list_tasks(args.status)
+    else:
+        LOG.error(f"Invalid action: {args.action}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task tracker CLI")
@@ -267,6 +301,5 @@ if __name__ == "__main__":
     list_task_parser.add_argument("status", nargs="?", choices=["all", "todo", "in-progress", "done"], default="all", help="Task type")
 
     args = parser.parse_args()
-    print(args)
 
     handle_task(args)
