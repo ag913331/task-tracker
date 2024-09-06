@@ -72,7 +72,7 @@ Arguments:
 5. `list`: Lists tasks based on their status.
     - `status` (optional): The status of the tasks to list. Options are `all`, `todo`, `in-progress`, and `done`. This argument defaults to `all` if not specified, allowing the user to view all tasks or filter by status.
 
-The identical names of the arguments do not conflict with each other, since their are being used with their respective parser. For more information about subparsers please see [argparser-subparsers](https://docs.python.org/3/library/argparse.html#sub-commands).
+The identical names of the arguments do not conflict with each other, since they are being used with their respective parser. For more information about subparsers please see [argparser-subparsers](https://docs.python.org/3/library/argparse.html#sub-commands).
 
 
 ### Core functionalities
