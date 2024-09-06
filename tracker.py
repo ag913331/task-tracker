@@ -62,9 +62,8 @@ class Task:
     id: int
     name: str
     status: TaskStatus = TaskStatus.TODO
-    created_at: str = datetime.now().isoformat()  # Set current timestamp
-    updated_at: str = datetime.now().isoformat()  # Set current timestamp
-
+    created_at: str = datetime.now().isoformat()
+    updated_at: str = datetime.now().isoformat()
 
 def validate_task_name(task_name: str) -> Tuple[bool, str]:
     """
