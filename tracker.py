@@ -3,6 +3,7 @@ import json
 import logging
 import os
 
+from datetime import datetime
 from enum import Enum
 from typing import Tuple, List
 from dataclasses import dataclass
@@ -46,7 +47,6 @@ class TaskStatus(Enum):
     IN_PROGRESS = "in-progress"
     DONE = "done"
 
-
 @dataclass
 class Task:
     """
@@ -55,11 +55,15 @@ class Task:
     Attributes:
         id (int): The unique identifier for the task.
         name (str): The name or description of the task.
-        status (TaskStatus): The current status of the task, defaulting to TaskStatus.PENDING.
+        status (TaskStatus): The current status of the task, defaulting to TaskStatus.TODO.
+        created_at (str): Timestamp when the task was created.
+        updated_at (str): Timestamp when the task was last updated.
     """
     id: int
     name: str
     status: TaskStatus = TaskStatus.TODO
+    created_at: str = datetime.now().isoformat()  # Set current timestamp
+    updated_at: str = datetime.now().isoformat()  # Set current timestamp
 
 
 def validate_task_name(task_name: str) -> Tuple[bool, str]:
@@ -93,7 +97,13 @@ def load_tasks() -> List[Task]:
         with open(TASKS_FILE, "r") as file:
             tasks_data = json.load(file)
             return [
-                Task(id=task['id'], name=task['name'], status=TaskStatus(task['status']))
+                Task(
+                    id=task['id'], 
+                    name=task['name'], 
+                    status=TaskStatus(task['status']),
+                    created_at=task['createdAt'],
+                    updated_at=task['updatedAt']
+                )
                 for task in tasks_data
             ]
     except (FileNotFoundError, json.JSONDecodeError):
@@ -107,7 +117,20 @@ def save_tasks(tasks: List[Task]):
         tasks (List[Task]): The list of Task objects to be saved.
     """
     with open(TASKS_FILE, "w") as file:
-        json.dump([{"id": task.id, "name": task.name, "status": task.status.value} for task in tasks], file, indent=4)
+        json.dump(
+            [
+                {
+                    "id": task.id, 
+                    "name": task.name, 
+                    "status": task.status.value, 
+                    "createdAt": task.created_at, 
+                    "updatedAt": task.updated_at
+                } 
+                for task in tasks
+            ], 
+            file, 
+            indent=4
+        )
 
 def add_task(task_name: str):
     """
@@ -121,7 +144,12 @@ def add_task(task_name: str):
     """
     tasks = load_tasks()
     new_id = max([task.id for task in tasks], default=0) + 1
-    new_task = Task(id=new_id, name=task_name)
+    new_task = Task(
+        id=new_id, 
+        name=task_name, 
+        created_at=datetime.now().isoformat(), 
+        updated_at=datetime.now().isoformat()
+    )
     tasks.append(new_task)
     save_tasks(tasks)
     LOG.info(f"[+] New task '{task_name}' added.")
@@ -137,28 +165,23 @@ def update_task(task_id: int, updated_name: str):
     Returns:
         None
     """
-    # Load existing tasks from the file
     tasks = load_tasks()
-
-    # Find the task by ID
     task_to_update = next((task for task in tasks if task.id == task_id), None)
 
     if task_to_update is None:
         LOG.error(f"Task with ID {task_id} not found.")
         return
 
-    # Validate the updated task name
     is_valid, error_message = validate_task_name(updated_name)
     if not is_valid:
         LOG.error(f"Task input validation: {error_message}")
         return
 
-    # Update the task name
+    # Update the task name and updated_at timestamp
     task_to_update.name = updated_name
+    task_to_update.updated_at = datetime.now().isoformat()
 
-    # Save the updated tasks back to the file
     save_tasks(tasks)
-    
     LOG.info(f"[+u] Task ID {task_id} updated successfully to '{updated_name}'.")
 
 
@@ -197,33 +220,25 @@ def update_status(task_id: int, updated_status: str):
 
     Args:
         task_id (int): The ID of the task to update.
-        updated_status (str): The new status for the task ('pending', 'in-progress', 'completed').
+        updated_status (str): The new status for the task ('todo', 'in-progress', 'done').
     
     Returns:
         None
     """
-    # Define valid statuses
     valid_statuses = [status.value for status in TaskStatus]
-    
-    # Load existing tasks from the file
     tasks = load_tasks()
-
-    # Find the task by ID
     task_to_update = next((task for task in tasks if task.id == task_id), None)
 
     if task_to_update is None:
         LOG.error(f"Task with ID {task_id} not found.")
         return
 
-    # Validate the updated status
     if updated_status.lower() not in valid_statuses:
         LOG.error(f"'{updated_status}' is not a valid status. Valid statuses are: {valid_statuses}.")
         return
 
-    # Update the task status
     task_to_update.status = TaskStatus(updated_status.lower())
-
-    # Save the updated task list back to the file
+    task_to_update.updated_at = datetime.now().isoformat()  # Update timestamp
     save_tasks(tasks)
 
     LOG.info(f"[+u] Task ID {task_id} status updated successfully to '{updated_status}'.")
@@ -255,7 +270,7 @@ def list_tasks(task_status: str):
         LOG.info(f"No tasks found with status '{task_status}'.")
     else:
         for task in filtered_tasks:
-            print(f"ID: {task.id}, Name: {task.name}, Status: {task.status.value}")
+            print(f"ID: {task.id}, Name: {task.name}, Status: {task.status.value}, Created At: {task.created_at}, Updated At: {task.updated_at}")
 
 
 def handle_task(args: argparse.Namespace):
